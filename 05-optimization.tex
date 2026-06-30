@@ -1,0 +1,80 @@
+% =====================================================================
+% 05-optimization.tex
+% =====================================================================
+\section{The Optimization Algorithm}\label{sec:optimization}
+
+The second axis of our taxonomy concerns how the policy is updated once a
+reward is available. The dominant methods form a spectrum from general
+policy gradients to specialized preference learning; their trade-offs are
+summarized in Table~\ref{tab:algos}.
+
+\subsection{Policy Gradient with a Critic: PPO}
+
+PPO~\cite{schulman2017ppo} optimizes a clipped surrogate that prevents
+destructively large updates, using a learned value function to estimate
+advantages $A(s_t,a_t)=R(s_t,a_t)-V(s_t)$. It was the engine of
+InstructGPT and remains a strong baseline: a careful study found that
+well-tuned PPO still outperforms DPO in complex settings that require
+exploration, provided the reward model, KL penalty, and batch size are
+well chosen~\cite{xu2024dpoppo}. PPO's principal cost is the critic
+network, of size comparable to the policy, which roughly doubles memory
+and complicates training.
+
+\subsection{Critic-Free and Group-Relative Methods}
+
+A second family removes the critic to reduce cost and instability.
+REINFORCE with a simple baseline is the classical
+instance~\cite{williams1992reinforce}, and RLOO revisits it for LLMs,
+using a leave-one-out average over sampled responses as a low-variance
+baseline that matches or beats PPO at lower
+cost~\cite{ahmadian2024rloo}. GRPO~\cite{shao2024deepseekmath} samples a
+\emph{group} of responses per prompt and normalizes their rewards within
+the group to form advantages, dispensing with the value network
+altogether. GRPO is especially effective with verifiable binary rewards
+and underpins DeepSeek-R1~\cite{guo2025deepseekr1}; subsequent analysis
+characterizes its effective loss and success-amplification
+dynamics~\cite{shao2025grpodynamics}, and variants further relax the
+reference-model and KL requirements for stability.
+
+\subsection{Direct and Offline Preference Optimization}
+
+The third family, anchored by DPO~\cite{rafailov2023dpo} and its
+relatives IPO~\cite{azar2024ipo} and KTO~\cite{ethayarajh2024kto},
+optimizes a closed-form preference loss directly, with no on-policy
+sampling and no reward model. These methods are simple and stable but
+fundamentally offline, and a growing body of evidence shows that online
+methods converge to better final performance because they can explore
+beyond the fixed preference
+distribution~\cite{tajwar2024preference,xu2024dpoppo}. This motivates
+hybrid schemes such as Nash learning from human
+feedback~\cite{munos2023nash} and asynchronous off-policy
+RLHF~\cite{noukhovitch2025async}, which seek the stability of offline
+methods with the ceiling of online ones.
+
+\subsection{Online Versus Offline: The Central Trade-Off}
+
+The recurring theme is the online--offline trade-off. Offline methods
+(DPO family) are cheap and stable but capped by their dataset; online
+methods (PPO, GRPO) explore and reach higher performance but are
+computationally expensive because every update requires fresh sampling
+from the full model. Critic-free online methods (GRPO, RLOO) occupy an
+attractive middle ground, which largely explains their current
+popularity for reasoning-oriented training.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of the dominant optimization algorithms.}
+\label{tab:algos}
+\renewcommand{\arraystretch}{1.25}
+\footnotesize
+\begin{tabular}{@{}p{0.18\columnwidth}p{0.16\columnwidth}p{0.13\columnwidth}p{0.13\columnwidth}p{0.20\columnwidth}@{}}
+\toprule
+\textbf{Method} & \textbf{Reward model} & \textbf{Critic} & \textbf{Data} & \textbf{Best for} \\
+\midrule
+DPO  & Implicit & No  & Offline & General alignment \\
+PPO  & Explicit & Yes & Online  & Complex / exploratory tasks \\
+GRPO & Explicit (verifiable) & No & Online (groups) & Verifiable reasoning \\
+RLOO & Explicit & No & Online & Low-variance, cheap \\
+\bottomrule
+\end{tabular}
+\end{table}
