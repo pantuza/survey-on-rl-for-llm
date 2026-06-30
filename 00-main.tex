@@ -1,0 +1,100 @@
+\documentclass[journal]{IEEEtran}
+
+% ---------------------------------------------------------------------
+% Packages
+% ---------------------------------------------------------------------
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{tikz}
+\usetikzlibrary{trees,positioning,shapes.geometric,arrows.meta,fit,backgrounds}
+\usepackage[edges]{forest}
+\usepackage{cite}
+\usepackage{balance}
+
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+
+% ---------------------------------------------------------------------
+% Colors used by the taxonomy figure
+% ---------------------------------------------------------------------
+\definecolor{axisA}{RGB}{31,119,180}
+\definecolor{axisB}{RGB}{44,160,44}
+\definecolor{axisC}{RGB}{148,103,189}
+\definecolor{rootgray}{RGB}{80,80,80}
+
+\begin{document}
+
+\title{A Survey on Reinforcement Learning for \\ LLM Training}
+
+\author{Gustavo~Pantuza,
+        Daniel~Neves,
+        Nat\'alia~Sales,
+        Caio~Campos,
+        Edwaldo~Rodrigues
+        
+\thanks{The authors are with the Department of Computer Science,
+Universidade Federal de Minas Gerais (UFMG), Belo Horizonte, Brazil
+(e-mail: \{pantuza, daniel.neves, natalia.sales, caio.campos, edwaldo.rodrigues\}@dcc.ufmg.br).}
+\thanks{Manuscript prepared June 2026.}}
+
+\markboth{IEEE Communications Surveys \& Tutorials,~Vol.~XX, No.~X, 2026}%
+{Campos \MakeLowercase{\textit{et al.}}: A Survey on Reinforcement Learning for LLM Training}
+
+\maketitle
+
+\begin{abstract}
+Reinforcement learning (RL) has become the central mechanism for
+transforming large language models (LLMs) from passive next-token
+predictors into capable problem solvers and autonomous decision-making
+agents. From the alignment of instruction-following assistants with
+human preferences to the emergence of long-horizon reasoning in
+models trained with verifiable rewards, RL now spans the entire
+post-training stage of the modern LLM lifecycle. However, the field
+has grown rapidly and unevenly, with overlapping terminology, diverse
+algorithms, and heterogeneous reward designs that make systematic
+comparison difficult. This survey provides a comprehensive, tutorial
+review of RL for LLM training. We first formalize the paradigm shift
+from single-step \emph{preference-based reinforcement fine-tuning}
+(PBRFT) to temporally extended \emph{agentic RL} through a unified
+Markov decision process lens, and recall the algorithmic spectrum
+spanning REINFORCE, PPO, DPO, and GRPO. We then introduce a compact
+yet expressive three-axis taxonomy that organizes the literature by
+\emph{(i)} the reward signal that drives learning, \emph{(ii)} the
+optimization algorithm that updates the policy, and \emph{(iii)} the
+training scope that determines whether a single response or a full
+multi-step trajectory is optimized. Using this taxonomy, we map
+representative works, contrast their trade-offs, and consolidate the
+landscape of open challenges, including reward hacking, credit
+assignment, sample efficiency, and scalable oversight. We conclude by
+outlining research directions toward reliable and general-purpose
+agentic intelligence.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Large language models, reinforcement learning, RLHF, RLAIF,
+direct preference optimization, GRPO, reward modeling, LLM agents,
+alignment, taxonomy.
+\end{IEEEkeywords}
+
+\input{01-introduction}
+\input{02-background}
+\input{03-taxonomy}
+\input{04-reward-signals}
+\input{05-optimization}
+\input{06-agentic-rl}
+\input{07-challenges}
+\input{08-conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
