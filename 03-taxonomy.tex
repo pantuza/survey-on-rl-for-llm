@@ -1,0 +1,144 @@
+% =====================================================================
+% 03-taxonomy.tex  (core contribution)
+% =====================================================================
+\section{A Three-Axis Taxonomy}\label{sec:taxonomy}
+
+The diversity of RL methods for LLMs can be overwhelming, but almost
+every method can be characterized by answering three independent
+questions: \emph{What signal does it learn from? How is the policy
+updated? And over what temporal scope?} We therefore organize the field
+along three nearly orthogonal axes, illustrated in
+Fig.~\ref{fig:taxonomy}.
+
+\begin{figure*}[t]
+\centering
+\begin{forest}
+forked edges,
+for tree={grow'=0,draw,rounded corners,font=\footnotesize,align=left,
+          edge+={semithick},parent anchor=east,child anchor=west,
+          l sep=7mm,s sep=1.2mm,inner sep=2.5pt,}
+[{\textbf{RL for}\\\textbf{LLM Training}}, fill=rootgray!18, align=center
+  [{\textbf{Axis A}\\Reward Signal}, fill=axisA!18, align=center
+    [{Human preference (RLHF)~\cite{ouyang2022instructgpt}}]
+    [{AI preference (RLAIF, Constitutional AI)~\cite{bai2022constitutional}}]
+    [{Implicit / data preference (DPO)~\cite{rafailov2023dpo}}]
+    [{Verifiable / rule-based (RLVR)~\cite{shao2024deepseekmath}}]
+    [{Granularity: outcome (ORM) vs.\ process (PRM)~\cite{lightman2023verify}}]
+  ]
+  [{\textbf{Axis B}\\Optimization}, fill=axisB!18, align=center
+    [{Policy gradient + critic (PPO)~\cite{schulman2017ppo}}]
+    [{Critic-free / group (REINFORCE, RLOO, GRPO)~\cite{shao2024deepseekmath}}]
+    [{Direct / offline (DPO, IPO, KTO)~\cite{rafailov2023dpo}}]
+  ]
+  [{\textbf{Axis C}\\Training Scope}, fill=axisC!18, align=center
+    [{Single-step / single-turn (PBRFT)~\cite{ouyang2022instructgpt}}]
+    [{Multi-step / trajectory (Agentic RL)~\cite{zhang2026landscape}}]
+  ]
+]
+\end{forest}
+\caption{The proposed three-axis taxonomy for reinforcement learning in
+LLM training. The three axes, reward signal (Axis~A), optimization
+algorithm (Axis~B), and training scope (Axis~C), are nearly orthogonal,
+so any method occupies a single cell of the resulting space.}
+\label{fig:taxonomy}
+\end{figure*}
+
+\subsection{Axis A: Reward Signal}
+
+The reward is what the policy ultimately optimizes, and its
+\emph{source} and \emph{granularity} are the most consequential design
+choices. By \emph{source} we distinguish: \emph{human preference}
+(RLHF), where annotators rank
+responses~\cite{christiano2017deeprl,ouyang2022instructgpt};
+\emph{AI preference}, Reinforcement Learning from AI Feedback
+(RLAIF) or Constitutional AI, where an LLM judges responses under a
+written constitution or rubric~\cite{bai2022constitutional,lee2023rlaif};
+\emph{implicit or data preference}, where no reward model is trained and
+the preference is encoded directly into the loss, as in
+DPO~\cite{rafailov2023dpo}; and \emph{verifiable or rule-based} rewards,
+Reinforcement Learning with Verifiable Rewards (RLVR), where correctness
+is checked by a deterministic verifier such as a math checker or unit
+test~\cite{shao2024deepseekmath,guo2025deepseekr1}.
+
+Orthogonally, by \emph{granularity} we distinguish Outcome Reward
+Models (ORMs), which score only the final answer, from Process Reward
+Models (PRMs), which score each intermediate
+step~\cite{lightman2023verify}. Section~\ref{sec:reward} elaborates on
+this axis in detail.
+
+\subsection{Axis B: Optimization Algorithm}
+
+Given a reward signal, the optimization algorithm determines how the
+policy is updated. We group methods into three families:
+\emph{policy gradient with a critic}
+(PPO~\cite{schulman2017ppo}), which estimates advantages with a learned
+value function; \emph{critic-free or group-relative} methods
+(REINFORCE~\cite{williams1992reinforce}, RLOO~\cite{ahmadian2024rloo},
+GRPO~\cite{shao2024deepseekmath}), which avoid a value network by using
+baselines or within-group normalization; and \emph{direct or offline}
+preference methods (DPO~\cite{rafailov2023dpo}, Identity Preference
+Optimization, IPO~\cite{azar2024ipo}, Kahneman--Tversky Optimization,
+KTO~\cite{ethayarajh2024kto}), which optimize a closed-form preference
+loss without on-policy sampling. The mechanisms and trade-offs of each
+family are analyzed in Section~\ref{sec:optimization}.
+
+\subsection{Axis C: Training Scope}
+
+Finally, the training scope fixes the temporal horizon over which the
+reward is optimized. \emph{Single-step} methods (PBRFT) treat the task
+as one prompt mapped to one response, the degenerate $T{=}1$ MDP
+described in Section~\ref{sec:background}. \emph{Multi-step} methods
+(Agentic RL) optimize an entire trajectory of interleaved reasoning,
+tool calls, and environment actions under a POMDP with $T{>}1$,
+introducing planning and long-horizon credit
+assignment~\cite{zhang2026landscape}. We dedicate
+Section~\ref{sec:agentic} to this emerging paradigm.
+
+\subsection{Placing the Literature}
+
+The power of the taxonomy is that the three axes can be read jointly:
+DeepSeek-R1, for instance, is \emph{(A)}~verifiable-reward,
+\emph{(B)}~GRPO, \emph{(C)}~single-step (one long reasoning response),
+whereas an RL-trained software-engineering agent is
+\emph{(A)}~verifiable (unit tests), \emph{(B)}~PPO or GRPO,
+\emph{(C)}~multi-step.
+Table~\ref{tab:placement} places representative works in this space; the
+remaining sections elaborate each row.
+
+\begin{table*}[t]
+\centering
+\caption{Representative RL-for-LLM methods placed on the three axes.
+RLVR = Reinforcement Learning with Verifiable Rewards;
+ORM/PRM = Outcome/Process Reward Model;
+PBRFT = Preference-Based Reinforcement Fine-Tuning;
+CoT = Chain of Thought;
+TDPO = Token-level Direct Preference Optimization.}
+\label{tab:placement}
+\renewcommand{\arraystretch}{1.2}
+\footnotesize
+\begin{tabular}{@{}llllp{0.30\textwidth}@{}}
+\toprule
+\textbf{Method} & \textbf{Axis A: Reward} & \textbf{Axis B: Algorithm} & \textbf{Axis C: Scope} & \textbf{Domain / Note} \\
+\midrule
+InstructGPT~\cite{ouyang2022instructgpt}      & Human pref.\ (ORM)        & PPO            & Single-step & First RLHF assistant at scale \\
+Llama~2-Chat~\cite{touvron2023llama2}          & Human pref.\ (ORM)        & PPO + reject.\ sampling & Single-step & Open RLHF at scale \\
+Constitutional AI~\cite{bai2022constitutional} & AI pref.\ (ORM)           & PPO            & Single-step & Harmlessness from AI feedback \\
+RLAIF~\cite{lee2023rlaif}                       & AI pref.\ (ORM)           & PPO            & Single-step & Matches RLHF on summarization \\
+DPO~\cite{rafailov2023dpo}                      & Implicit pref.            & DPO (offline)  & Single-step & No explicit reward model \\
+IPO~\cite{azar2024ipo}                          & Implicit pref.            & IPO (offline)  & Single-step & Theoretical fix to DPO overfitting \\
+KTO~\cite{ethayarajh2024kto}                    & Implicit (unpaired)       & KTO (offline)  & Single-step & Prospect-theoretic loss \\
+TDPO~\cite{zeng2024tdpo}                         & Implicit pref.            & DPO (token)    & Single-step & Token-level control \\
+RLOO~\cite{ahmadian2024rloo}                     & Human pref.               & REINFORCE-leave-one-out & Single-step & Critic-free, low variance \\
+DeepSeekMath~\cite{shao2024deepseekmath}        & Verifiable (ORM)          & GRPO           & Single-step & Introduces GRPO \\
+DeepSeek-R1~\cite{guo2025deepseekr1}            & Verifiable (ORM)          & GRPO           & Single-step$^\dagger$ & Emergent long-CoT reasoning \\
+Let's Verify~\cite{lightman2023verify}          & Verifiable (PRM)          & Search / best-of-$n$ & Single-step & Step-level supervision \\
+OmegaPRM~\cite{wang2024omegaprm}                 & Verifiable (PRM)          & Auto.\ MC supervision & Single-step & Automated process labels \\
+SWE-agent~\cite{yang2024sweagent}               & Verifiable (unit tests)   & PPO / GRPO     & Multi-step  & Agent--computer interface \\
+ReAct~\cite{yao2023react}                        & --- (prompting)           & RL-free        & Multi-step  & Reasoning + acting scaffold \\
+Toolformer~\cite{schick2023toolformer}          & Self-supervised           & SFT            & Single-step & Learns API calls \\
+Voyager~\cite{wang2023voyager}                   & Environment feedback      & RL-free        & Multi-step  & Lifelong embodied agent \\
+\bottomrule
+\end{tabular}\\[2pt]
+{\footnotesize $^\dagger$ A single long reasoning response; the
+R1 pipeline also uses multi-stage RL.}
+\end{table*}
