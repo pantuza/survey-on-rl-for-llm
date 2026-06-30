@@ -1,0 +1,93 @@
+% =====================================================================
+% 06-agentic-rl.tex
+% =====================================================================
+\section{From Single Responses to Agentic Trajectories}\label{sec:agentic}
+
+The temporal scope of optimization distinguishes single-turn PBRFT from
+\emph{agentic RL}, where an LLM is optimized over an entire multi-step
+trajectory~\cite{zhang2026landscape}. Although the reward and
+optimization dimensions were historically studied in the single-step
+regime, the frontier has moved to trajectory-level training. This section
+reviews that transition, the capabilities RL is used to instill, and the
+task domains and infrastructure that support it.
+
+\subsection{Why Trajectories Change the Problem}
+
+Extending the horizon from $T{=}1$ to $T{>}1$ reintroduces the classical
+difficulties of RL that PBRFT had sidestepped. Rewards become sparse and
+delayed, raising the \emph{credit-assignment} problem of deciding which
+of many actions caused a success or failure. The action space expands to
+include tool calls and environment actions, demanding
+\emph{exploration}. The policy must also maintain \emph{state}, that is,
+memory of prior observations, across the episode. Process rewards
+(Section~\ref{sec:reward}) and group-relative algorithms
+(Section~\ref{sec:optimization}) are partial answers to these
+difficulties, but they remain the defining challenges of the agentic
+regime.
+
+\subsection{RL-Optimizable Agentic Capabilities}
+
+Following the capability view of Zhang \textit{et~al.}~\cite{zhang2026landscape},
+RL is increasingly used to convert static, prompt-engineered modules into
+learned, adaptive behaviors:
+
+\begin{itemize}
+\item \textit{Reasoning.} Long Chain-of-Thought (CoT), once elicited by
+prompting~\cite{wei2022cot,yao2023tot,besta2024got}, is now \emph{trained}
+with verifiable rewards, as in DeepSeek-R1~\cite{guo2025deepseekr1}.
+
+\item \textit{Planning.} Plan--execute--reflect loops can be optimized
+end-to-end rather than hand-designed, though LLM planning still degrades
+sharply with combinatorial complexity~\cite{valmeekam2024planning}.
+
+\item \textit{Tool use.} From self-supervised API
+learning~\cite{schick2023toolformer,qin2023toolllm,patil2023gorilla},
+the field is moving toward RL that learns \emph{when} and \emph{which}
+tool to call based on final-answer quality.
+
+\item \textit{Memory.} Episodic, semantic, and procedural memory are
+emerging as RL-controllable policies for what to store and
+retrieve~\cite{sun2025lifelong}.
+
+\item \textit{Self-improvement.} Agents that critique and revise their
+own trajectories close the loop between generation and reward.
+\end{itemize}
+
+\subsection{Task Domains}
+
+Agentic RL has been instantiated across several domains, almost always
+with verifiable rewards. In \emph{code}, SWE-agent couples an
+LLM to an agent--computer interface and is evaluated on real GitHub
+issues via SWE-bench~\cite{yang2024sweagent,jimenez2024swebench,wang2024codeact};
+unit-test pass/fail provides a natural reward, and performance on
+SWE-bench Verified rose from roughly 12.5\% to over 50\% within a year.
+In \emph{math}, formal and informal verifiers drive
+training~\cite{shao2024deepseekmath,lightman2023verify}. \emph{Search}
+and \emph{GUI} agents optimize multi-turn retrieval and interface
+manipulation. Embodied agents such as Voyager show open-ended skill
+acquisition, albeit largely without RL in the loop~\cite{wang2023voyager}.
+
+\subsection{Multi-Agent Systems}
+
+A further extension optimizes \emph{multiple} interacting LLM agents.
+Surveys catalogue debate, hierarchical orchestration, and social
+simulation as the main collaboration
+patterns~\cite{talebirad2024multiagent,han2025collaboration,du2023debate,hong2023metagpt,park2023generative}.
+Applying RL to jointly train communication and delegation protocols among
+agents remains largely unexplored and is a promising frontier. Practical
+deployments of such agents, for instance intelligent agents for
+computer-network configuration~\cite{reiznautt2026minicurso} and LLM
+agents for communication and network
+management~\cite{boateng2024llmnsm}, illustrate the demand for
+trajectory-level training in realistic, tool-rich settings.
+
+\subsection{Environments, Frameworks, and Benchmarks}
+
+Trajectory-level training needs infrastructure: interactive environments
+that expose tools and produce rewards, scalable RL frameworks that
+overlap generation and learning, and benchmarks that measure multi-step
+competence rather than single answers~\cite{zhang2026landscape}. The
+field has rapidly accumulated open-source environments and training
+frameworks, but standardized, contamination-resistant benchmarks for
+\emph{adaptive, multi-turn} behavior remain scarce, a gap we return to
+in Section~\ref{sec:challenges}.
