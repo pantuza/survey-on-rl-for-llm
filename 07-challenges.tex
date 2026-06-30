@@ -1,0 +1,58 @@
+% =====================================================================
+% 07-challenges.tex
+% =====================================================================
+\section{Open Challenges and Future Directions}\label{sec:challenges}
+
+The open problems of the field cluster naturally around three concerns:
+designing reliable reward signals, improving optimization efficiency,
+and scaling to long-horizon tasks.
+
+\subsection{Reward Hacking and Robust Alignment}
+
+Whenever the reward is a learned proxy, the policy may exploit its
+flaws, rewarding verbosity, formatting, or sycophancy instead of
+genuine quality. Overoptimization follows predictable scaling
+laws~\cite{gao2023scaling}, and reward-model ensembles mitigate but do
+not eliminate it~\cite{coste2024ensembles}. Alignment is also fragile:
+cheap fine-tuning can undo safety training~\cite{qi2024finetuning,lermen2024lora}.
+Verifiable rewards sidestep much of this but only where a verifier
+exists. Promising directions include uncertainty-calibrated reward
+models, online reward-hacking detection, and information-theoretic
+regularization.
+
+\subsection{Credit Assignment and Sparse Rewards}
+
+In multi-step settings, the central difficulty is attributing a delayed,
+sparse outcome to individual actions in a long trajectory. Process reward
+models~\cite{lightman2023verify,wang2024omegaprm} provide denser signal,
+but generating meaningful intermediate rewards without extensive
+annotation, and beyond structured mathematics, remains open.
+Trajectory-aware advantage estimation and automated sub-goal verification
+are active research avenues.
+
+\subsection{Sample Efficiency and Cost}
+
+Online RL is computationally punishing: every update requires sampling
+from the full model. Asynchronous, off-policy
+RLHF~\cite{noukhovitch2025async}, difficulty-targeted data selection, and
+rollout reuse with importance sampling all aim to reduce the number of
+rollouts. Bridging offline pre-training of policies with a short online
+phase is an especially attractive cost--performance compromise.
+
+\subsection{Scalable Oversight}
+
+As models approach or exceed human ability on a task, human preference
+ceases to be a reliable reward signal: annotators cannot judge what they
+cannot verify~\cite{casper2023open}. Scalable-oversight proposals include
+debate, recursive task decomposition, and weak-to-strong generalization.
+The broad migration toward verifiable rewards is, in part, a response to
+this limitation, but most real tasks lack a crisp verifier.
+
+\subsection{Evaluation and Benchmarks}
+
+Finally, evaluation has not kept pace. Most benchmarks are single-turn,
+while the interesting behavior is multi-turn and adaptive. Benchmarks
+are also prone to contamination as models scale. The field needs
+standardized, contamination-resistant suites that measure long-horizon,
+tool-using competence and the robustness of alignment under distribution
+shift.
