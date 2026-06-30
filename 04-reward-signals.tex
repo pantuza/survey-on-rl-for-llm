@@ -1,0 +1,85 @@
+% =====================================================================
+% 04-reward-signals.tex
+% =====================================================================
+\section{The Reward Signal}\label{sec:reward}
+
+The reward is the only place where human intent enters RL training, so
+its design dominates both the quality and the failure modes of the
+resulting model. We survey the four reward sources identified in our
+taxonomy and the orthogonal outcome-versus-process distinction.
+
+\subsection{Human Preference Rewards: RLHF}
+
+RLHF learns a reward model $r_\phi$ from pairwise human comparisons,
+typically with a Bradley--Terry likelihood, and then optimizes the policy
+against $r_\phi$ under a KL penalty to the reference
+model~\cite{christiano2017deeprl,stiennon2020summarize,ouyang2022instructgpt}.
+This recipe aligned InstructGPT and was later scaled for Llama~2-Chat,
+which added rejection sampling before PPO and iterative rounds of
+feedback collection~\cite{touvron2023llama2}.  Human preference remains
+the gold standard for subjective qualities such as helpfulness and tone,
+but it is expensive, noisy across annotators, and fragile: safety
+alignment can be cheaply undone by subsequent
+fine-tuning~\cite{qi2024finetuning,lermen2024lora}.  Comprehensive
+treatments of RLHF and its limitations are given
+in~\cite{kaufmann2024survey,casper2023open,lambert2024rlhfbook}.
+
+\subsection{AI Preference Rewards: RLAIF}
+
+To escape the annotation bottleneck, Constitutional AI has an LLM
+critique and revise its own outputs under a written set of principles,
+then trains a preference model on these AI
+judgments~\cite{bai2022constitutional}.  RLAIF generalizes this idea and
+was shown to match RLHF on summarization and dialogue while being far
+cheaper and more reproducible~\cite{lee2023rlaif}.  The trade-off is that
+AI feedback inherits the judge model's biases, including verbosity,
+sycophancy, and self-preference, so RLAIF and RLHF are often combined,
+using humans to calibrate and AI to scale.
+
+\subsection{Implicit / Data Preference: DPO and Variants}
+
+DPO observes that the RLHF objective has a closed-form optimum, allowing
+the reward model to be eliminated and the policy to be trained directly
+on preference pairs via a classification loss~\cite{rafailov2023dpo}.
+This makes alignment dramatically simpler and more stable, at the cost of
+being \emph{offline}: it learns from a fixed dataset and cannot explore.
+A family of refinements followed: IPO regularizes against DPO's tendency
+to overfit deterministic preferences~\cite{azar2024ipo}; KTO replaces
+paired data with unpaired, prospect-theoretic
+signals~\cite{ethayarajh2024kto}; Token-level Direct Preference
+Optimization (TDPO) moves supervision to the token level for finer
+control~\cite{zeng2024tdpo}; and calibrated DPO restores
+scale-comparability with explicit rewards~\cite{liu2024caldpo}.  A key
+empirical finding is that preference fine-tuning benefits from
+suboptimal, on-policy data~\cite{tajwar2024preference}, foreshadowing the
+online methods of Section~\ref{sec:optimization}.
+
+\subsection{Verifiable / Rule-Based Rewards: RLVR}
+
+The most consequential recent shift is toward rewards computed by a
+deterministic verifier rather than a learned model: a math answer is
+either correct or not, a unit test passes or fails.  Such
+\emph{verifiable} rewards are cheap, unhackable in the usual sense, and
+perfectly reproducible.  DeepSeekMath introduced GRPO precisely to
+exploit them at scale~\cite{shao2024deepseekmath}, and DeepSeek-R1 showed
+that pure RL with verifiable rewards, even without an initial SFT stage,
+induces emergent chain-of-thought, self-verification, and ``aha''
+behaviors~\cite{guo2025deepseekr1}.  Verifiable rewards are now the
+dominant paradigm for reasoning, math, and code, and are a major reason
+RL has become a third scaling axis alongside parameters and
+data~\cite{snell2024testtime,openai2024o1,muennighoff2025s1}.
+
+\subsection{Granularity: Outcome vs.\ Process Rewards}
+
+Cutting across all four sources is the question of \emph{when} reward is
+delivered.  Outcome reward models (ORMs) score only the final answer,
+providing a sparse signal that complicates credit assignment over long
+reasoning chains.  Process reward models (PRMs) instead score each
+intermediate step; Lightman \textit{et~al.}\ showed PRMs outperform ORMs
+for verifying mathematical reasoning~\cite{lightman2023verify}.  The
+obstacle is the cost of step-level labels, addressed by automated process
+supervision via Monte-Carlo rollouts~\cite{wang2024omegaprm} and by
+careful study of how to build PRMs robustly~\cite{luo2025prmlessons}.
+Recent work questions whether the PRM advantage transfers beyond
+structured, verifiable domains, leaving process supervision for
+open-ended tasks an open problem.
