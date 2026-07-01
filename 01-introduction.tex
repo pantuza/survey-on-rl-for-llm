@@ -5,70 +5,52 @@
 
 \IEEEPARstart{R}{einforcement} Learning (RL) has become the defining
 mechanism of the Large Language Model (LLM) post-training pipeline.
-After pre-training by next-token prediction and optional Supervised
-Fine-Tuning (SFT), it is RL that transforms a fluent yet undirected text
-generator into a helpful, harmless, and increasingly \emph{agentic}
-system. Reinforcement Learning from Human Feedback
-(RLHF)~\cite{christiano2017deeprl,ouyang2022instructgpt} enabled the
+After pre-training and Supervised
+Fine-Tuning (SFT), it is RL transforms a fluent text generator into a goal-directed policy optimized for task-level rewards, providing the decision-making basis for an agentic system. Reinforcement Learning from Human Feedback
+(RLHF)~\cite{christiano2017deeprl} enabled the
 first generation of instruction-following assistants; Direct Preference
 Optimization (DPO)~\cite{rafailov2023dpo} demonstrated that the same
 alignment objective could be achieved without an explicit reward model;
 and Group Relative Policy Optimization (GRPO) with verifiable rewards
 produced models whose reasoning capabilities are substantially shaped by
-RL~\cite{shao2024deepseekmath,guo2025deepseekr1}. Most recently, this
-machinery has been extended beyond single responses to optimize
-multi-step \emph{trajectories} in which an LLM plans, invokes tools,
-maintains memory, and acts in dynamic
-environments~\cite{zhang2026landscape}.
+RL~\cite{shao2024deepseekmath}. Most recently, this technology has been extended beyond single responses to optimize multi-step behavior, in which an LLM plans, invokes tools, maintains memory, and acts in dynamic environments.~\cite{zhang2026landscape}.
 
-This rapid progress, however, has outpaced systematization. Terminology
+This progress, however, has not been matched by a comparable effort to organize the field conceptually. Terminology
 overlaps across paradigms, algorithms proliferate with variants such as
 Proximal Policy Optimization (PPO), DPO, GRPO, and REINFORCE
 Leave-One-Out (RLOO), and reward designs range from scalar human
 preferences to dense step-level verifiers. Several surveys address parts
 of this landscape: some focus on RLHF
-alignment~\cite{kaufmann2024survey,casper2023open,lambert2024rlhfbook},
+alignment~\cite{kaufmann2024survey},
 others catalogue broad agent
-architectures~\cite{wang2024agentsurvey,xi2025agentic,masterman2024landscape},
+architectures~\cite{wang2024agentsurvey},
 and a recent comprehensive taxonomy organizes agentic RL by capabilities
 and task domains~\cite{zhang2026landscape}. Yet none provides a
-\emph{compact, tutorial-oriented} synthesis that places any given method
+compact, tutorial-oriented synthesis that places any given method
 along a small set of clearly defined axes. Practitioners entering the
 field still lack a concise map connecting preference-based fine-tuning to
 the current frontier of agentic RL.
 
 This survey fills that gap with a unified treatment of RL for LLM
 training, from its inception in preference-based fine-tuning to
-multi-step agentic optimization, organized around a novel three-axis
-taxonomy. Our contributions are as follows:
+multi-step agentic optimization, organized around a three-axis
+taxonomy. We formalize, within a single Markov Decision Process (MDP)
+framework, the paradigm shift from single-step Preference-Based
+Reinforcement Fine-Tuning (PBRFT) to agentic RL,
+and we summarize the algorithmic spectrum that spans REINFORCE, PPO,
+DPO, and GRPO. On this basis we propose a taxonomy that classifies
+methods along three axes, the reward signal, the
+optimization algorithm, and the training scope (single response or
+multi-step trajectory), so that every method occupies a unique,
+well-defined cell. We then review representative works along each axis,
+covering reward design, optimization algorithms, and agentic
+trajectories, and assemble the results into a table that assigns every method to its cell in the taxonomy.
+Finally, we synthesize the open challenges of the field, among them
+reward hacking, credit assignment, sample efficiency, scalable
+oversight, and evaluation, and we point to concrete research
+directions.
 
-\begin{itemize}
-\item A unified Markov Decision Process (MDP) formalization of the
-      paradigm shift from single-step \emph{Preference-Based
-      Reinforcement Fine-Tuning} (PBRFT) to temporally extended
-      \emph{agentic RL}, together with a summary of the algorithmic
-      spectrum spanning REINFORCE, PPO, DPO, and GRPO.
-
-\item A \emph{compact three-axis taxonomy} that classifies methods by
-      (i)~reward signal, (ii)~optimization algorithm, and
-      (iii)~training scope (single response vs.\ multi-step
-      trajectory). The three axes are nearly orthogonal, so every method
-      occupies a unique, well-defined cell.
-
-\item A structured review of representative works along each axis,
-      covering reward design, optimization algorithms, and agentic
-      trajectories, consolidated in a master placement table.
-
-\item A structured review of representative works along each axis,
-      covering reward design, optimization algorithms, and agentic
-      trajectories, consolidated in a master placement table.
-
-\item A synthesis of open challenges, including reward hacking, credit
-      assignment, sample efficiency, scalable oversight, and evaluation,
-      with concrete research directions.
-\end{itemize}
-
-\noindent The remainder of this paper is organized as follows.
+The remainder of this paper is organized as follows.
 Section~\ref{sec:background} formalizes the RL framework for LLMs and
 recalls core algorithms. Section~\ref{sec:taxonomy} introduces the
 three-axis taxonomy. Sections~\ref{sec:reward}, \ref{sec:optimization},
