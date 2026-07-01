@@ -5,7 +5,7 @@
 
 \subsection{The LLM Post-training Pipeline}
 
-An LLM is first \emph{pre-trained} by maximum-likelihood next-token
+An LLM is first pre-trained by maximum-likelihood next-token
 prediction on large corpora, yielding a general-purpose conditional
 generator. Two post-training stages then shape its behavior. In
 SFT the model imitates curated
@@ -15,24 +15,24 @@ exceed them. Reinforcement Fine-Tuning (RFT) instead optimizes
 the model against a reward signal, allowing it to explore the response
 space and, in principle, surpass its demonstrators~\cite{ouyang2022instructgpt}.
 
-The canonical RLHF pipeline of InstructGPT chains the two: SFT, then
+The RLHF pipeline of InstructGPT chains the two: SFT, then
 training a reward model on pairwise human preferences, then policy
 optimization with PPO under a Kullback--Leibler (KL) penalty that keeps
-the policy close to the SFT reference~\cite{ouyang2022instructgpt,ziegler2019finetuning,stiennon2020summarize}. Notably, a 1.3B-parameter
-model aligned this way was preferred by humans over the 175B GPT-3,
-establishing that alignment via RL can be more effective than scaling
-parameters alone.
+the policy close to the SFT reference~\cite{ziegler2019finetuning,stiennon2020summarize}. Notably, a 1.3B-parameter model aligned this way was preferred by
+humans over the 175B GPT-3~\cite{ouyang2022instructgpt}, establishing
+that alignment via RL can be more effective than scaling parameters
+alone.
 
 \subsection{A Unified MDP/POMDP View}
 
-Following Zhang \textit{et~al.}~\cite{zhang2026landscape}, we cast both
+Following~\cite{zhang2026landscape}, we cast both
 classical and agentic RL for LLMs as Partially Observable Markov Decision
 Processes (POMDPs), which exposes their essential difference. An MDP is a
 tuple $\langle \mathcal{S}, \mathcal{A}, P, R, T, \gamma \rangle$ with
 state space $\mathcal{S}$, action space $\mathcal{A}$, transition kernel
 $P$, reward $R$, horizon $T$, and discount $\gamma$.
 
-\paragraph{PBRFT.} Classical RLHF/DPO is a
+\paragraph{PBRFT} Classical RLHF/DPO is a
 \emph{degenerate, single-step} MDP. The episode starts from one prompt
 state $s_0$ and terminates immediately after the model emits a complete
 response $a$:
@@ -45,7 +45,7 @@ transition to the terminal state, and a single scalar reward
 $R_{\text{trad}}(s_0,a)=r(a)$. The objective is simply
 $J(\theta)=\mathbb{E}_{a\sim\pi_\theta}[r(a)]$.
 
-\paragraph{Agentic RL.} When the LLM acts over many steps, reading tool
+\paragraph{Agentic RL} When the LLM acts over many steps, reading tool
 outputs, observing an environment, and updating memory, the process becomes
 a temporally extended POMDP
 $\langle \mathcal{S}_{\text{agent}}, \mathcal{A}_{\text{agent}},
@@ -54,9 +54,8 @@ horizon $T>1$. The agent receives observations $o_t=\mathcal{O}(s_t)$,
 chooses actions $a_t$, and the state evolves stochastically
 $s_{t+1}\sim P(s_{t+1}\mid s_t,a_t)$. The action space splits into
 language and environment actions,
-$\mathcal{A}_{\text{agent}}=\mathcal{A}_{\text{text}}\cup\mathcal{A}_{\text{action}}$, where structured actions (delimited by
-special tokens) invoke tools or modify the environment. Rewards become
-step-wise, mixing sparse task completion with dense sub-rewards, and the
+$\mathcal{A}_{\text{agent}}=\mathcal{A}_{\text{text}}\cup\mathcal{A}_{\text{action}}$, where actions invoke tools or modify the environment. Rewards become
+step-wise, mixing task completion with dense sub-rewards, and the
 objective is the discounted return
 \begin{equation}
 J(\theta)=\mathbb{E}_{\tau\sim\pi_\theta}\Big[\textstyle\sum_{t=0}^{T-1}
@@ -66,11 +65,11 @@ J(\theta)=\mathbb{E}_{\tau\sim\pi_\theta}\Big[\textstyle\sum_{t=0}^{T-1}
 Table~\ref{tab:pbrft-vs-agentic} summarizes the contrast. The shift from
 $T{=}1$ to $T{>}1$ is the single most important conceptual move in the
 field: it introduces planning, long-horizon credit assignment, and
-exploration as first-class concerns.
+exploration.
 
 \begin{table}[t]
 \centering
-\caption{Formal comparison of PBRFT and Agentic RL.}
+\caption{Formal comparison of PBRFT and Agentic RL}
 \label{tab:pbrft-vs-agentic}
 \renewcommand{\arraystretch}{1.25}
 \begin{tabular}{@{}p{0.10\columnwidth}p{0.36\columnwidth}p{0.40\columnwidth}@{}}
@@ -88,30 +87,30 @@ Objective & $\mathbb{E}[r(a)]$ & $\mathbb{E}[\sum_t \gamma^t R(s_t,a_t)]$ \\
 
 \subsection{The Algorithmic Spectrum}\label{sec:background-algos}
 
-Four algorithm families recur throughout the survey; we introduce them
-here and analyze their trade-offs in Section~\ref{sec:optimization}.
+Four algorithm families underlie most methods in this survey:
 
-\paragraph{REINFORCE.} The foundational policy
+
+\paragraph{REINFORCE} the foundational policy
 gradient~\cite{williams1992reinforce,sutton2018rl} increases the
 log-probability of actions weighted by their baseline-subtracted
 return,
 $\nabla_\theta J=\mathbb{E}[(R(s_0,a)-b(s_0))\nabla_\theta\log\pi_\theta(a\mid s_0)]$.
 It is simple but suffers from high gradient variance.
 
-\paragraph{PPO.} PPO~\cite{schulman2017ppo}
+\paragraph{PPO}
 stabilizes policy-gradient updates with a clipped surrogate objective and
 a learned value function (critic) for advantage estimation
-$A(s_t,a_t)=R(s_t,a_t)-V(s_t)$. PPO became the workhorse of RLHF but
-requires a critic of comparable size to the policy.
+$A(s_t,a_t)=R(s_t,a_t)-V(s_t)$. PPO became the standart optimizer for RLHF but
+requires a critic of comparable size to the policy~\cite{schulman2017ppo}.
 
-\paragraph{DPO.} DPO~\cite{rafailov2023dpo}
-removes the explicit reward model entirely, reformulating the
+\paragraph{DPO}
+removes the reward model, reformulating the
 KL-constrained reward-maximization as a binary classification loss over
 preferred/dispreferred pairs $(y_w,y_l)$, with the policy itself acting
-as an implicit reward model.
+as an implicit reward model~\cite{rafailov2023dpo}.
 
-\paragraph{GRPO.} GRPO~\cite{shao2024deepseekmath}
-removes the critic: it samples a \emph{group} of responses per prompt and
-normalizes their rewards within the group to form advantages. Combined
+\paragraph{GRPO}
+removes the critic: it samples a group of responses per prompt and
+normalizes their rewards to form advantages~\cite{shao2024deepseekmath}. Combined
 with verifiable rewards, GRPO drove the emergent reasoning of
 DeepSeek-R1~\cite{guo2025deepseekr1}.
